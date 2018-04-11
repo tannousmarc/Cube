@@ -88,7 +88,7 @@ void main_console() {
   char* p, x[ 1024 ];
 
   while( 1 ) {
-
+    //dashboard();
     puts( "shell$ ", 7 ); gets( x, 1024 ); p = strtok( x, " " );
 
     if     ( 0 == strcmp( p, "execute"   ) ) {

@@ -39,6 +39,7 @@ typedef int pid_t;
 #define SYS_KILL      ( 0x06 )
 #define SYS_NICE      ( 0x07 )
 #define SYS_CLEAR     ( 0x10 )
+#define SYS_DSHBR     ( 0x11 )
 
 #define SIG_TERM      ( 0x00 )
 #define SIG_QUIT      ( 0x01 )
@@ -71,6 +72,8 @@ extern void exit(       int   x );
 extern void exec( const void* x );
 // clear the screen
 extern void clear();
+// display dashboard
+extern void dashboard();
 
 // for process identified by pid, send signal of x
 extern int  kill( pid_t pid, int x );

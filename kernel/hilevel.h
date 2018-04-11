@@ -59,6 +59,13 @@ typedef struct {
   status_t status;
      ctx_t    ctx;
      int priority;
+     char*   name;
 } pcb_t;
 
+typedef struct{
+  // our two heroes
+  pid_t player1, player2;
+
+  int read, write;
+} pipe_t;
 #endif

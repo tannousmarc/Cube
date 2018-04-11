@@ -88,6 +88,14 @@ void clear() {
 
   return;
 }
+void dashboard() {
+  asm volatile( "svc %0     \n" // make system call SYS_DSHBR
+              :
+              : "I" (SYS_DSHBR)
+              : );
+
+  return;
+}
 
 int write( int fd, const void* x, size_t n ) {
   int r;

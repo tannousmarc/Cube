@@ -1,7 +1,7 @@
 /* Copyright (C) 2017 Daniel Page <csdsp@bristol.ac.uk>
  *
- * Use of this source code is restricted per the CC BY-NC-ND license, a copy of 
- * which can be found via http://creativecommons.org (and should be included as 
+ * Use of this source code is restricted per the CC BY-NC-ND license, a copy of
+ * which can be found via http://creativecommons.org (and should be included as
  * LICENSE.txt within the associated archive or repository).
  */
 
@@ -19,13 +19,13 @@ uint32_t weight( uint32_t x ) {
 
 void main_P3() {
   while( 1 ) {
-    write( STDOUT_FILENO, "P3", 2 );
+    //dashboard();
 
     uint32_t lo = 1 <<  8;
     uint32_t hi = 1 << 24;
 
     for( uint32_t x = lo; x < hi; x++ ) {
-      uint32_t r = weight( x ); 
+      uint32_t r = weight( x );
     }
   }
 

@@ -90,8 +90,9 @@ void hilevel_handler_irq(ctx_t* ctx){
 
   // handle interrupt, then reset
   if( id == GIC_SOURCE_TIMER0 ) {
-    PL011_putc( UART0, 'T', true );
+    // PL011_putc( UART0, 'T', true );
     // increase priority of each process ready to be run
+    dashboard();
     for(int i = 0; i <= processes; i++){
       if(pcb[i].status == STATUS_READY
          && pcb[i].priority < MAX_PRIORITY){
@@ -116,9 +117,22 @@ void hilevel_handler_irq(ctx_t* ctx){
 
   return;
 }
+void writeLine(char* line){
+  int size = strlen(line);
+  for( int i = 0; i < size; i++ )
+     PL011_putc( UART0, *line++, true );
+}
+char* getName(uint32_t main){
+  if(main == (uint32_t)main_console) return "CNSL";
+  else if(main == (uint32_t)main_P3) return "PRG3";
+  else if(main == (uint32_t)main_P4) return "PRG4";
+  else if(main == (uint32_t)main_P5) return "PRG5";
+  return "";
+}
 void generateProcess(uint32_t main, int priority){
   processes++;
   memset( &pcb[ processes ], 0, sizeof( pcb_t ) );
+  pcb[processes].name = getName(main);
 
   pcb[ processes ].pid          = processes;
   pcb[ processes ].status       = STATUS_READY;
@@ -188,11 +202,13 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
     case 0x04 :{ // EXIT
       deadProcesses++;
       pcb[executing].status = STATUS_TERMINATED;
+      pcb[executing].priority = 0;
       scheduler(ctx);
       break;
     }
     case 0x05 :{ // EXEC
       pcb[processes].ctx.pc = ctx -> gpr[0];
+      pcb[processes].name = getName(ctx -> gpr[0]);
       break;
     }
     case 0x06 :{ // KILL
@@ -201,12 +217,52 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
       for(int i = 0; i <= processes; i++){
         if(pcb[i].pid == lookingFor){
           pcb[ i ].status = STATUS_TERMINATED;
+          pcb[ i ].priority = 0;
         }
       }
       break;
     }
     case 0x10 :{ // CLEAR SCREEN
-      write(STDOUT_FILENO, "\033c", 5);
+      write(STDOUT_FILENO, "\033c", 4);
+      break;
+    }
+    case 0x11 :{ // DASHBOARD
+      write(STDOUT_FILENO, "\033c", 4);
+      // write line because write breaks off after 13-16? chars
+      writeLine("╔════════╦═══════════╦═══════════════╗\n");
+      writeLine("║  NAME  ║  PROC ID  ║  PROC STATUS  ║\n");
+      writeLine("╠════════╩═══════════╩═══════════════╣\n");
+      for(int i = 0; i <= processes; i++){
+        writeLine("║  ");
+        write(STDOUT_FILENO, pcb[i].name, strlen(pcb[i].name));
+        writeLine("        ");
+        printNumber(pcb[i].pid);
+        writeLine("      ");
+        switch(pcb[i].status){
+          case STATUS_READY :{
+            write(STDOUT_FILENO, "\033[1;32m", 8);
+            writeLine("     READY     ");
+            write(STDOUT_FILENO, "\033[0m", 5);
+            writeLine("║\n");
+            break;
+          }
+          case STATUS_TERMINATED :{
+            write(STDOUT_FILENO, "\033[1;31m", 8);
+            writeLine("   COMPLETED   ");
+            write(STDOUT_FILENO, "\033[0m", 5);
+            writeLine("║\n");
+            break;
+          }
+          case STATUS_EXECUTING :{
+            write(STDOUT_FILENO, "\033[1;34m", 8);
+            writeLine("   EXECUTING   ");
+            write(STDOUT_FILENO, "\033[0m", 5);
+            writeLine("║\n");
+            break;
+          }
+        }
+      }
+      writeLine("╚════════════════════════════════════╝\n");
       break;
     }
     default   : { // 0x?? => unknown/unsupported
