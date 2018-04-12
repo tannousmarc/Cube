@@ -229,40 +229,40 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
     case 0x11 :{ // DASHBOARD
       write(STDOUT_FILENO, "\033c", 4);
       // write line because write breaks off after 13-16? chars
-      writeLine("╔════════╦═══════════╦═══════════════╗\n");
-      writeLine("║  NAME  ║  PROC ID  ║  PROC STATUS  ║\n");
-      writeLine("╠════════╩═══════════╩═══════════════╣\n");
+      //TODO: RENAME TO PID AND STATE, REORDER TO PID NAME STATE
+      writeLine("╔═══════╦════════╦═══════════╗\n");
+      writeLine("║  PID  ║  NAME  ║   STATE   ║\n");
+      writeLine("╠═══════╩════════╩═══════════╣\n");
       for(int i = 0; i <= processes; i++){
         writeLine("║  ");
-        write(STDOUT_FILENO, pcb[i].name, strlen(pcb[i].name));
-        writeLine("        ");
         printNumber(pcb[i].pid);
         writeLine("      ");
+        write(STDOUT_FILENO, pcb[i].name, strlen(pcb[i].name));
         switch(pcb[i].status){
           case STATUS_READY :{
             write(STDOUT_FILENO, "\033[1;32m", 8);
-            writeLine("     READY     ");
+            writeLine("      READY   ");
             write(STDOUT_FILENO, "\033[0m", 5);
             writeLine("║\n");
             break;
           }
           case STATUS_TERMINATED :{
             write(STDOUT_FILENO, "\033[1;31m", 8);
-            writeLine("   COMPLETED   ");
+            writeLine("    COMPLETED ");
             write(STDOUT_FILENO, "\033[0m", 5);
             writeLine("║\n");
             break;
           }
           case STATUS_EXECUTING :{
             write(STDOUT_FILENO, "\033[1;34m", 8);
-            writeLine("   EXECUTING   ");
+            writeLine("    EXECUTING ");
             write(STDOUT_FILENO, "\033[0m", 5);
             writeLine("║\n");
             break;
           }
         }
       }
-      writeLine("╚════════════════════════════════════╝\n");
+      writeLine("╚════════════════════════════╝\n");
       break;
     }
     default   : { // 0x?? => unknown/unsupported

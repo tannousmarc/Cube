@@ -8,7 +8,7 @@
 #include "libc.h"
 
 // used exclusively for debugging
-void printNumber(int x){
+void printDigit(int x){
   char* string;
   switch (x) {
     case 0 :  string ="0"; break;
@@ -23,6 +23,16 @@ void printNumber(int x){
     case 9 :  string ="9"; break;
   }
   write(STDOUT_FILENO, string, 1);
+}
+void printNumber(int x){
+  if(x>9){
+    printDigit(x/10);
+    printDigit(x - ((x/10)*10));
+  }
+  else{
+    write(STDOUT_FILENO, " ", 1);
+    printDigit(x);
+  }
 }
 
 int  atoi( char* x        ) {

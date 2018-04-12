@@ -80,6 +80,7 @@ extern int  kill( pid_t pid, int x );
 // for process identified by pid, set  priority to x
 extern void nice( pid_t pid, int x );
 
+extern void printDigit(int x);
 extern void printNumber(int x);
 
 #endif
