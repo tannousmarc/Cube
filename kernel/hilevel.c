@@ -17,6 +17,7 @@
 */
 #define MAX_PRIORITY (5)
 
+extern void     main_philo();
 extern void     main_console();
 extern uint32_t tos_console;
 extern void     main_P3();
@@ -28,8 +29,10 @@ extern uint32_t tos_P5;
 extern uint32_t tos_PX;
 
 pcb_t pcb[ 32 ];
+pipe_t pipe[ 32 ];
 int executing = 0;
 int processes = -1;
+int pipes     = -1;
 int deadProcesses = 0;
 int next = 0;
 
@@ -92,7 +95,7 @@ void hilevel_handler_irq(ctx_t* ctx){
   if( id == GIC_SOURCE_TIMER0 ) {
     // PL011_putc( UART0, 'T', true );
     // increase priority of each process ready to be run
-    dashboard();
+    //dashboard();
     for(int i = 0; i <= processes; i++){
       if(pcb[i].status == STATUS_READY
          && pcb[i].priority < MAX_PRIORITY){
@@ -263,6 +266,57 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
         }
       }
       writeLine("╚════════════════════════════╝\n");
+      break;
+    }
+    case 0x20:{ // LET'S BUILD A PIPE
+      pipes++;
+      pipe[pipes].player1 = ctx -> gpr[0];
+      pipe[pipes].player2 = ctx -> gpr[1];
+      pipe[pipes].write   = 0;
+      pipe[pipes].read    = 0;
+      break;
+    }
+    case 0x21:{ // READ FROM A PIPE
+      int id = ctx->gpr[0];
+      int direction = ctx->gpr[1];
+      // 0 = read, 1 = write
+      if(direction == 0)
+        ctx->gpr[0] = pipe[id].read;
+      else if(direction == 1)
+        ctx->gpr[0] = pipe[id].write;
+      writeLine("READING FROM PIPE ");
+      printDigit(id);
+      writeLine("\n");
+      writeLine("DIRECTION ");
+      printDigit(direction);
+      writeLine("\n");
+      writeLine("DATA RETURNED ");
+      printNumber(ctx->gpr[0]);
+      writeLine("\n");
+      break;
+    }
+    case 0x22:{ // WRITE ON A PIPE
+      int id = ctx->gpr[0];
+      int direction = ctx->gpr[1];
+      int data = ctx->gpr[2];
+      // 0 = read, 1 = write
+      if(direction == 0)
+        pipe[id].read = data;
+      else if(direction == 1)
+        pipe[id].write = data;
+      writeLine("WRITING ON PIPE ");
+      printDigit(id);
+      writeLine("\n");
+      writeLine("DIRECTION ");
+      printDigit(direction);
+      writeLine("\n");
+      writeLine("DATA WRITTEN ");
+      printNumber(data);
+      writeLine("\n");
+      break;
+    }
+    case 0x25:{ // RUN PHILOSOPHERS
+      generateProcess((uint32_t) main_philo, 1);
       break;
     }
     default   : { // 0x?? => unknown/unsupported

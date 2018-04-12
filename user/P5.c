@@ -22,7 +22,7 @@ int is_prime( uint32_t x ) {
 }
 
 void main_P5() {
-  for( int i = 0; i < 5; i++ ) {
+  for( int i = 0; i < 10; i++ ) {
     //dashboard();
 
     uint32_t lo = 1 <<  8;

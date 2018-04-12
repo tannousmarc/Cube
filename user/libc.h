@@ -40,6 +40,10 @@ typedef int pid_t;
 #define SYS_NICE      ( 0x07 )
 #define SYS_CLEAR     ( 0x10 )
 #define SYS_DSHBR     ( 0x11 )
+#define PIPE_INIT     ( 0x20 )
+#define PIPE_READ     ( 0x21 )
+#define PIPE_WRITE     ( 0x22 )
+#define RUN_PHILO     ( 0x25 )
 
 #define SIG_TERM      ( 0x00 )
 #define SIG_QUIT      ( 0x01 )
@@ -82,5 +86,14 @@ extern void nice( pid_t pid, int x );
 
 extern void printDigit(int x);
 extern void printNumber(int x);
+
+// generate pipe
+extern void  generatePipe( pid_t p1, pid_t p2 );
+// read from a pipe
+extern void  readPipe( int id, int direction );
+// write on a pipe
+extern void  writePipe( int id, int direction, int data );
+
+extern void  runPhilo();
 
 #endif

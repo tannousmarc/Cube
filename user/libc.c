@@ -79,7 +79,44 @@ void itoa( char* r, int x ) {
 
   return;
 }
+void generatePipe(int p1, int p2){
+  asm volatile( "mov r0, %1 \n" // assign r0 =  p1
+                "mov r1, %2 \n" // assign r1 =  p2
+                "svc %0     \n" // make system call PIPE_INIT
+              :
+              : "I" (PIPE_INIT), "r" (p1), "r" (p2)
+              : "r0", "r1" );
+  return;
+}
+void readPipe(int id, int direction){
+  asm volatile( "mov r0, %1 \n" // assign r0 =  id
+                "mov r1, %2 \n" // assign r1 =  direction
+                "svc %0     \n" // make system call PIPE_READ
+              :
+              : "I" (PIPE_READ), "r" (id), "r" (direction)
+              : "r0", "r1" );
+  return;
+}
+void writePipe(int id, int direction, int data){
+  // write(STDOUT_FILENO,"AICIWRITE1",10);
+  asm volatile( "mov r0, %1 \n" // assign r0 = id
+                "mov r1, %2 \n" // assign r1 = direction
+                "mov r2, %3 \n" // assign r2 = data
+                "svc %0     \n" // make system call PIPE_WRITE
+              :
+              : "I" (PIPE_WRITE),  "r" (id), "r" (direction), "r" (data)
+              : "r0", "r1", "r2" );
+  // write(STDOUT_FILENO,"AICIWRITE2",10);
+}
 
+void runPhilo() {
+  asm volatile( "svc %0     \n" // make system call RUN_PHILO
+              :
+              : "I" (RUN_PHILO)
+              : );
+
+  return;
+}
 void yield() {
   asm volatile( "svc %0     \n" // make system call SYS_YIELD
               :

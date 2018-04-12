@@ -107,6 +107,9 @@ void main_console() {
     else if( 0 == strcmp( p, "clear" ) ) {
       clear();
     }
+    else if( 0 == strcmp( p, "philosophers" ) ) {
+      runPhilo();
+    }
     else {
       puts( "unknown command\n", 16 );
     }
