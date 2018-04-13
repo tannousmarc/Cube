@@ -12,6 +12,17 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <string.h>
+// Include functionality relating to the platform.
+
+#include   "GIC.h"
+#include "PL011.h"
+#include "SP804.h"
+
+// Include functionality relating to the   kernel.
+
+#include "lolevel.h"
+#include     "int.h"
 // Define a type that that captures a Process IDentifier (PID).
 
 typedef int pid_t;
@@ -44,6 +55,8 @@ typedef int pid_t;
 #define PIPE_READ     ( 0x21 )
 #define PIPE_WRITE     ( 0x22 )
 #define RUN_PHILO     ( 0x25 )
+#define PHILO_ID     ( 0x26 )
+#define PHILO_NO     ( 0x27)
 
 #define SIG_TERM      ( 0x00 )
 #define SIG_QUIT      ( 0x01 )
@@ -85,15 +98,21 @@ extern int  kill( pid_t pid, int x );
 extern void nice( pid_t pid, int x );
 
 extern void printDigit(int x);
-extern void printNumber(int x);
+extern void printNumber(int value);
 
 // generate pipe
 extern void  generatePipe( pid_t p1, pid_t p2 );
 // read from a pipe
-extern void  readPipe( int id, int direction );
+extern int  readPipe( int id, int direction );
 // write on a pipe
 extern void  writePipe( int id, int direction, int data );
+extern int waitRead(int id, int dir);
+extern void waitWrite(int id, int direction, int data);
 
 extern void  runPhilo();
+
+extern int getPhiloId();
+extern int getPhiloNo();
+extern void writeLine(char* line);
 
 #endif

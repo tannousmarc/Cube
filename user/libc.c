@@ -6,7 +6,27 @@
  */
 
 #include "libc.h"
+void writeLine(char* line){
+  int size = strlen(line);
+  for( int i = 0; i < size; i++ )
+     PL011_putc( UART0, *line++, true );
+}
 
+int waitRead(int id, int dir){
+  int x = readPipe(id,dir);
+  while(x == -1){
+    x = readPipe(id,dir);
+  }
+  writePipe(id,dir,-1);
+  return x;
+}
+void waitWrite(int id, int dir, int data){
+  int x = readPipe(id,dir);
+  while(x != -1){
+    x = readPipe(id,dir);
+  }
+  writePipe(id, dir, data);
+}
 // used exclusively for debugging
 void printDigit(int x){
   char* string;
@@ -25,6 +45,9 @@ void printDigit(int x){
   write(STDOUT_FILENO, string, 1);
 }
 void printNumber(int x){
+  if(x<0){
+    write(STDOUT_FILENO, "-", 1);
+  }
   if(x>9){
     printDigit(x/10);
     printDigit(x - ((x/10)*10));
@@ -34,7 +57,6 @@ void printNumber(int x){
     printDigit(x);
   }
 }
-
 int  atoi( char* x        ) {
   char* p = x; bool s = false; int r = 0;
 
@@ -88,14 +110,16 @@ void generatePipe(int p1, int p2){
               : "r0", "r1" );
   return;
 }
-void readPipe(int id, int direction){
-  asm volatile( "mov r0, %1 \n" // assign r0 =  id
-                "mov r1, %2 \n" // assign r1 =  direction
-                "svc %0     \n" // make system call PIPE_READ
-              :
+int readPipe(int id, int direction){
+  int r;
+  asm volatile( "mov r0, %2 \n" // assign r0 =  id
+                "mov r1, %3 \n" // assign r1 =  direction
+                "svc %1     \n" // make system call PIPE_READ
+                "mov %0, r0 \n" // assign r  = r0
+              : "=r" (r)
               : "I" (PIPE_READ), "r" (id), "r" (direction)
               : "r0", "r1" );
-  return;
+  return r;
 }
 void writePipe(int id, int direction, int data){
   // write(STDOUT_FILENO,"AICIWRITE1",10);
@@ -116,6 +140,26 @@ void runPhilo() {
               : );
 
   return;
+}
+int getPhiloId() {
+  int r;
+
+  asm volatile( "svc %1     \n" // make system call SYS_WRITE
+                "mov %0, r0 \n" // assign r  = r0
+              : "=r" (r)
+              : "I" (PHILO_ID)
+              : "r0");
+  return r;
+}
+int getPhiloNo() {
+  int r;
+
+  asm volatile( "svc %1     \n" // make system call SYS_WRITE
+                "mov %0, r0 \n" // assign r  = r0
+              : "=r" (r)
+              : "I" (PHILO_NO)
+              : "r0");
+  return r;
 }
 void yield() {
   asm volatile( "svc %0     \n" // make system call SYS_YIELD

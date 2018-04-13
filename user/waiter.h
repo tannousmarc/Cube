@@ -10,7 +10,14 @@
 #include "PL011.h"
 
 #include "libc.h"
+#include "hilevel.h"
 
-#include "waiter.h"
+typedef struct {
+    int id;
+    // pseudo-boolean values
+    int left;
+    int right;
+    int hungry;
+} phil_t;
 
 #endif

@@ -15,9 +15,10 @@
 * - employ a fixed-case of round-robin scheduling: no more processes
 *   can be created, and neither is able to terminate.
 */
-#define MAX_PRIORITY (5)
+#define MAX_PRIORITY (16)
 
 extern void     main_philo();
+extern void     main_waiter();
 extern void     main_console();
 extern uint32_t tos_console;
 extern void     main_P3();
@@ -28,8 +29,8 @@ extern void     main_P5();
 extern uint32_t tos_P5;
 extern uint32_t tos_PX;
 
-pcb_t pcb[ 32 ];
-pipe_t pipe[ 32 ];
+pcb_t pcb[ 64 ];
+pipe_t pipe[ 64 ];
 int executing = 0;
 int processes = -1;
 int pipes     = -1;
@@ -95,7 +96,7 @@ void hilevel_handler_irq(ctx_t* ctx){
   if( id == GIC_SOURCE_TIMER0 ) {
     // PL011_putc( UART0, 'T', true );
     // increase priority of each process ready to be run
-    //dashboard();
+    dashboard();
     for(int i = 0; i <= processes; i++){
       if(pcb[i].status == STATUS_READY
          && pcb[i].priority < MAX_PRIORITY){
@@ -120,16 +121,13 @@ void hilevel_handler_irq(ctx_t* ctx){
 
   return;
 }
-void writeLine(char* line){
-  int size = strlen(line);
-  for( int i = 0; i < size; i++ )
-     PL011_putc( UART0, *line++, true );
-}
 char* getName(uint32_t main){
   if(main == (uint32_t)main_console) return "CNSL";
   else if(main == (uint32_t)main_P3) return "PRG3";
   else if(main == (uint32_t)main_P4) return "PRG4";
   else if(main == (uint32_t)main_P5) return "PRG5";
+  else if(main == (uint32_t)main_philo) return "PHIL";
+  else if(main == (uint32_t)main_waiter) return "WITR";
   return "";
 }
 void generateProcess(uint32_t main, int priority){
@@ -142,7 +140,7 @@ void generateProcess(uint32_t main, int priority){
   pcb[ processes ].priority     = priority;
   pcb[ processes ].ctx.cpsr     = 0x50;
   pcb[ processes ].ctx.pc       = ( uint32_t )( main );
-  pcb[ processes ].ctx.sp       = ( uint32_t )( &tos_PX + 0x00001000*processes );
+  pcb[ processes ].ctx.sp       = ( uint32_t )( &tos_PX + 0x000010000*processes );
 }
 void hilevel_handler_rst( ctx_t* ctx              ) {
   // initialise console process
@@ -184,12 +182,13 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
       processes++;
       memset( &pcb[processes], 0, sizeof(pcb_t) );
       pcb[ processes ].pid      = processes;
+      pcb[ processes ].name     = pcb[executing].name;
       pcb[ processes ].priority = 1;
       memcpy( &pcb[processes].ctx, ctx, sizeof(ctx_t) );
 
       // Make sure the top of stack offsets are equal
-      uint32_t childTos = ( uint32_t )( &tos_PX + processes*0x00001000 );
-      uint32_t parentTos = ( uint32_t )(&tos_PX + (pcb[executing].pid*0x00001000));
+      uint32_t childTos = ( uint32_t )( &tos_PX + processes*0x000010000 );
+      uint32_t parentTos = ( uint32_t )(&tos_PX + (pcb[executing].pid*0x000010000));
       pcb[processes].ctx.sp   = childTos + (pcb[executing].ctx.sp - parentTos);
 
       // copy stack
@@ -272,27 +271,29 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
       pipes++;
       pipe[pipes].player1 = ctx -> gpr[0];
       pipe[pipes].player2 = ctx -> gpr[1];
-      pipe[pipes].write   = 0;
-      pipe[pipes].read    = 0;
+      pipe[pipes].write   = -1;
+      pipe[pipes].read    = -1;
       break;
     }
     case 0x21:{ // READ FROM A PIPE
       int id = ctx->gpr[0];
       int direction = ctx->gpr[1];
       // 0 = read, 1 = write
-      if(direction == 0)
+      if(direction == 0){
         ctx->gpr[0] = pipe[id].read;
-      else if(direction == 1)
+      }
+      else if(direction == 1){
         ctx->gpr[0] = pipe[id].write;
-      writeLine("READING FROM PIPE ");
-      printDigit(id);
-      writeLine("\n");
-      writeLine("DIRECTION ");
-      printDigit(direction);
-      writeLine("\n");
-      writeLine("DATA RETURNED ");
-      printNumber(ctx->gpr[0]);
-      writeLine("\n");
+      }
+      // writeLine("READING FROM PIPE ");
+      // printDigit(id);
+      // writeLine("\n");
+      // writeLine("DIRECTION ");
+      // printDigit(direction);
+      // writeLine("\n");
+      // writeLine("DATA RETURNED ");
+      // printNumber(ctx->gpr[0]);
+      // writeLine("\n");
       break;
     }
     case 0x22:{ // WRITE ON A PIPE
@@ -304,19 +305,40 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
         pipe[id].read = data;
       else if(direction == 1)
         pipe[id].write = data;
-      writeLine("WRITING ON PIPE ");
-      printDigit(id);
-      writeLine("\n");
-      writeLine("DIRECTION ");
-      printDigit(direction);
-      writeLine("\n");
-      writeLine("DATA WRITTEN ");
-      printNumber(data);
-      writeLine("\n");
+      // writeLine("WRITING ON PIPE ");
+      // printDigit(id);
+      // writeLine("\n");
+      // writeLine("DIRECTION ");
+      // printDigit(direction);
+      // writeLine("\n");
+      // writeLine("DATA WRITTEN ");
+      // printNumber(data);
+      // writeLine("\n");
       break;
     }
     case 0x25:{ // RUN PHILOSOPHERS
-      generateProcess((uint32_t) main_philo, 1);
+      generateProcess((uint32_t) main_waiter, 1);
+      break;
+    }
+    case 0x26:{ // GET PHILOSOPHERS ID
+      int curr = 0;
+      for(int i = 0; i <= processes; i++){
+        if(i == executing){
+          ctx->gpr[0] = curr;
+          break;
+        }
+        if(0 == strcmp( pcb[i].name, "PHIL" ))
+          curr++;
+      }
+      break;
+    }
+    case 0x27:{ // GET PHILOSOPHERS NO
+      int curr = 0;
+      for(int i = 0; i <= processes; i++){
+        if(0 == strcmp( pcb[i].name, "PHIL" ))
+          curr++;
+      }
+      ctx->gpr[0] = curr;
       break;
     }
     default   : { // 0x?? => unknown/unsupported
