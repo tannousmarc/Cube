@@ -99,8 +99,8 @@ void main_console() {
       }
     }
     else if( 0 == strcmp( p, "terminate" ) ) {
-      pid_t pid = atoi( strtok( NULL, " " ) );
-      int   s   = atoi( strtok( NULL, " " ) );
+      pid_t pid = atoix( strtok( NULL, " " ) );
+      int   s   = atoix( strtok( NULL, " " ) );
 
       kill( pid, s );
     }
@@ -109,6 +109,9 @@ void main_console() {
     }
     else if( 0 == strcmp( p, "philosophers" ) ) {
       runPhilo();
+    }
+    else if( 0 == strcmp( p, "dashboard" ) ) {
+      toggleDashboard();
     }
     else {
       puts( "unknown command\n", 16 );

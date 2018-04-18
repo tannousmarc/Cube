@@ -51,12 +51,15 @@ typedef int pid_t;
 #define SYS_NICE      ( 0x07 )
 #define SYS_CLEAR     ( 0x10 )
 #define SYS_DSHBR     ( 0x11 )
+#define TGL_DSHBR     ( 0x12 )
+#define GET_DASH      ( 0x13 )
 #define PIPE_INIT     ( 0x20 )
 #define PIPE_READ     ( 0x21 )
 #define PIPE_WRITE     ( 0x22 )
 #define RUN_PHILO     ( 0x25 )
 #define PHILO_ID     ( 0x26 )
 #define PHILO_NO     ( 0x27)
+#define PHILO_CL     ( 0x28 )
 
 #define SIG_TERM      ( 0x00 )
 #define SIG_QUIT      ( 0x01 )
@@ -69,9 +72,9 @@ typedef int pid_t;
 #define STDERR_FILENO ( 2 )
 
 // convert ASCII string x into integer r
-extern int  atoi( char* x        );
+extern int  atoix( char* x        );
 // convert integer x into ASCII string r
-extern void itoa( char* r, int x );
+extern void itoax( char* r, int x );
 
 // cooperatively yield control of processor, i.e., invoke the scheduler
 extern void yield();
@@ -113,6 +116,9 @@ extern void  runPhilo();
 
 extern int getPhiloId();
 extern int getPhiloNo();
-extern void writeLine(char* line);
+extern void writeLine(char* line,int len);
+extern void resetClock(int x);
+extern void toggleDashboard();
+extern int getDash();
 
 #endif

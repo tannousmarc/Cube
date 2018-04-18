@@ -12,6 +12,7 @@
 #include "libc.h"
 #include "hilevel.h"
 
+
 typedef struct {
     int id;
     // pseudo-boolean values
@@ -19,5 +20,8 @@ typedef struct {
     int right;
     int hungry;
 } phil_t;
+
+extern void waitFork(int id);
+extern void downFork(int id);
 
 #endif

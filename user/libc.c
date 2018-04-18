@@ -6,8 +6,7 @@
  */
 
 #include "libc.h"
-void writeLine(char* line){
-  int size = strlen(line);
+void writeLine(char* line, int size){
   for( int i = 0; i < size; i++ )
      PL011_putc( UART0, *line++, true );
 }
@@ -57,7 +56,7 @@ void printNumber(int x){
     printDigit(x);
   }
 }
-int  atoi( char* x        ) {
+int  atoix( char* x        ) {
   char* p = x; bool s = false; int r = 0;
 
   if     ( *p == '-' ) {
@@ -75,7 +74,7 @@ int  atoi( char* x        ) {
   return r;
 }
 
-void itoa( char* r, int x ) {
+void itoax( char* r, int x ) {
   char* p = r; int t, n;
 
   if( x < 0 ) {
@@ -141,6 +140,16 @@ void runPhilo() {
 
   return;
 }
+int getDash() {
+  int r;
+
+  asm volatile( "svc %1     \n" // make system call GET_DASH
+                "mov %0, r0 \n" // assign r  = r0
+              : "=r" (r)
+              : "I" (GET_DASH)
+              : "r0");
+  return r;
+}
 int getPhiloId() {
   int r;
 
@@ -187,7 +196,13 @@ void dashboard() {
 
   return;
 }
-
+void toggleDashboard() {
+  asm volatile( "svc %0     \n" // make system call SYS_DSHBR
+              :
+              : "I" (TGL_DSHBR)
+              : );
+  return;
+}
 int write( int fd, const void* x, size_t n ) {
   int r;
 
@@ -239,6 +254,17 @@ void exit( int x ) {
 
   return;
 }
+
+void resetClock( int x ) {
+  asm volatile( "mov r0, %1 \n" // assign r0 =  x
+                "svc %0     \n" // make system call PHILO_CL
+              :
+              : "I" (PHILO_CL), "r" (x)
+              : "r0" );
+
+  return;
+}
+
 
 void exec( const void* x ) {
   asm volatile( "mov r0, %1 \n" // assign r0 = x

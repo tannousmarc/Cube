@@ -10,7 +10,7 @@
 #include "PL011.h"
 
 #include "libc.h"
-
+#include "hilevel.h"
 #include "waiter.h"
 
 #endif

@@ -1,15 +1,29 @@
 
 #include "waiter.h"
 
-#define PHIL_NO (16)
+
 // phil_t players[4];
 
 extern void main_philo();
+
+
+
+void waitFork(int id){
+  id += PHIL_NO;
+  waitRead(id, 0);
+  waitWrite(id, 0, -1);
+}
+void downFork(int id){
+  id += PHIL_NO;
+  waitWrite(id, 0, 0);
+}
+
 void main_waiter() {
   // write(STDOUT_FILENO,"WAITERINIT\n",11);
   int cnt = 0;
   for(int i = 0; i < PHIL_NO; i++){
     if(getPhiloNo()<PHIL_NO){
+
       fork();
       exec(&main_philo);
     }
@@ -20,34 +34,35 @@ void main_waiter() {
     // write(STDOUT_FILENO,"HATZ\n",5);
     // cnt++;
   }
+  initPipes();
 
-  for(int i = 0; i < PHIL_NO; i++){
-    generatePipe(-1,i);
-  }
-
-  for(int i = 0; i < PHIL_NO; i++){
-    int a = waitRead(i,0);
-    printNumber(a);
-    writeLine(" ");
-    printNumber(i);
-    writeLine("\n");
-  }
-
-  for(int i = 0; i < PHIL_NO; i++){
-    int a = waitRead(i,0);
-    printNumber(a);
-    writeLine(" ");
-    printNumber(i);
-    writeLine("\n");
-  }
-
-  for(int i = 0; i < PHIL_NO; i++){
-    int a = waitRead(i,0);
-    printNumber(a);
-    writeLine(" ");
-    printNumber(i);
-    writeLine("\n");
-  }
+  // for(int i = 0; i < PHIL_NO; i++){
+  //   generatePipe(-1,i);
+  // }
+  //
+  // for(int i = 0; i < PHIL_NO; i++){
+  //   int a = waitRead(i,0);
+  //   printNumber(a);
+  //   writeLine(" ");
+  //   printNumber(i);
+  //   writeLine("\n");
+  // }
+  //
+  // for(int i = 0; i < PHIL_NO; i++){
+  //   int a = waitRead(i,0);
+  //   printNumber(a);
+  //   writeLine(" ");
+  //   printNumber(i);
+  //   writeLine("\n");
+  // }
+  //
+  // for(int i = 0; i < PHIL_NO; i++){
+  //   int a = waitRead(i,0);
+  //   printNumber(a);
+  //   writeLine(" ");
+  //   printNumber(i);
+  //   writeLine("\n");
+  // }
   // get current philosopher's place
   //int id = getID();
   // generatePipe(1,2);
@@ -59,6 +74,5 @@ void main_waiter() {
   // writePipe(1, 1, 4);
   // readPipe(1, 1);
   // readPipe(1, 0);
-  writeLine("WAITERDONE");
   exit( EXIT_SUCCESS );
 }
