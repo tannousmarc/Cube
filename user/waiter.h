@@ -21,7 +21,6 @@ typedef struct {
     int hungry;
 } phil_t;
 
-extern void waitFork(int id);
-extern void downFork(int id);
+
 
 #endif

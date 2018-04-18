@@ -44,9 +44,43 @@ int next = 0;
 int counter = 0;
 int philInit = 0;
 int toggleDash = true;
+int selected = 0;
+int level = 0;
+
+void getQEMU( char* x, int n ) {
+  for( int i = 0; i < n; i++ ) {
+    x[ i ] = PL011_getc( UART0, true );
+
+    if( x[ i ] == '\x0A' ) {
+      x[ i ] = '\x00'; break;
+    }
+  }
+}
+
+char* getName(uint32_t main){
+  if(main == (uint32_t)main_console) return "CNSL";
+  else if(main == (uint32_t)main_P3) return "PRG3";
+  else if(main == (uint32_t)main_P4) return "PRG4";
+  else if(main == (uint32_t)main_P5) return "PRG5";
+  else if(main == (uint32_t)main_philo) return "PHIL";
+  else if(main == (uint32_t)main_waiter) return "WITR";
+  return "";
+}
+void generateProcess(uint32_t main, int priority){
+  processes++;
+  memset( &pcb[ processes ], 0, sizeof( pcb_t ) );
+  pcb[processes].name = getName(main);
+
+  pcb[ processes ].pid          = processes;
+  pcb[ processes ].status       = STATUS_READY;
+  pcb[ processes ].priority     = priority;
+  pcb[ processes ].ctx.cpsr     = 0x50;
+  pcb[ processes ].ctx.pc       = ( uint32_t )( main );
+  pcb[ processes ].ctx.sp       = ( uint32_t )( &tos_PX + 0x000010000*processes );
+}
 
 void timer(){
-  TIMER0->Timer1Load  = 0x00100000; // select period = 2^20 ticks ~= 1 sec
+  TIMER0->Timer1Load  = 0x00020000; // select period = 2^20 ticks ~= 1 sec
   TIMER0->Timer1Ctrl  = 0x00000002; // select 32-bit   timer
   TIMER0->Timer1Ctrl |= 0x00000040; // select periodic timer
   TIMER0->Timer1Ctrl |= 0x00000020; // enable          timer interrupt
@@ -69,23 +103,6 @@ void initPipes(){
   philInit = 1;
 }
 void scheduler( ctx_t* ctx ) {
-  // if(processes > 0){
-  //   int aux = executing;
-  //   do{
-  //     aux++;
-  //     next = aux % (processes + 1);
-  //   }
-  //   while(pcb[next].status == STATUS_TERMINATED);
-  // }
-  // else next = executing;
-  //
-  // memcpy( &pcb [ executing ].ctx, ctx, sizeof( ctx_t )); // preserve currently executing
-  // if(pcb[ executing ].status != STATUS_TERMINATED){
-  //   pcb[ executing ].status = STATUS_READY;
-  // }
-  // memcpy( ctx, &pcb[ next ].ctx, sizeof( ctx_t ) ); // restore next process
-  // pcb[ next ].status = STATUS_EXECUTING;
-  // executing = next;
   int bestPriority = 0;
   next = executing;
   for(int i = 0; i <= processes; i++){
@@ -103,19 +120,154 @@ void scheduler( ctx_t* ctx ) {
   executing = next;
   return;
 }
-
-
-
+void options(){
+  writeLine("\n");
+  writeLine("  ");
+  for(int x = 0; x <4; x++){
+    if(x == selected && level == 0){
+      writeLine("▛▀▀▀▀▀▀▀▀▀▀▀▀▀▀▜");
+    }
+    else{
+      writeLine("╔══════════════╗");
+    }
+    writeLine(" ");
+  }
+  writeLine("\n");
+  writeLine("  ");
+  for(int x = 0; x <4; x++){
+    if(x == selected && level == 0){
+      writeLine("▌");
+    }
+    else{
+      writeLine("║");
+    }
+    switch(x){
+      case 0:{
+        writeLine("  EXECUTE P3  ");
+        break;
+      }
+      case 1:{
+        writeLine("  EXECUTE P4  ");
+        break;
+      }
+      case 2:{
+        writeLine("  EXECUTE P5  ");
+        break;
+      }
+      case 3:{
+        writeLine(" PHILOSOPHERS ");
+        break;
+      }
+    }
+    if(x == selected && level == 0){
+      writeLine("▐");
+    }
+    else{
+      writeLine("║");
+    }
+    writeLine(" ");
+  }
+  writeLine("\n");
+  writeLine("  ");
+  for(int x = 0; x <4; x++){
+    if(x == selected && level == 0){
+      writeLine("▙▄▄▄▄▄▄▄▄▄▄▄▄▄▄▟");
+    }
+    else{
+      writeLine("╚══════════════╝");
+    }
+    writeLine(" ");
+  }
+  writeLine("\n");
+  if(level != 1){
+    write(STDOUT_FILENO, "\033[1;31m", 8);
+    writeLine("  ╔═════════════════════════════════════════════════════════════════╗\n");
+    writeLine("  ║                          TERMINATE ALL                          ║\n");
+    writeLine("  ╚═════════════════════════════════════════════════════════════════╝\n");
+    write(STDOUT_FILENO, "\033[0m", 5);
+  }
+  else if(level == 1){
+    write(STDOUT_FILENO, "\033[1;31m", 8);
+    writeLine("  ▛▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▜\n");
+    writeLine("  ▌                          TERMINATE ALL                          ▐\n");
+    writeLine("  ▙▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▟\n");
+    write(STDOUT_FILENO, "\033[0m", 5);
+  }
+  if(level != 2){
+    if(toggleDash == true)
+      write(STDOUT_FILENO, "\033[1;32m", 8);
+    writeLine("  ╔═════════════════════════════════════════════════════════════════╗\n");
+    writeLine("  ║                           TOGGLE DASH                           ║\n");
+    writeLine("  ╚═════════════════════════════════════════════════════════════════╝");
+    write(STDOUT_FILENO, "\033[0m", 5);
+  }
+  else if(level == 2){
+    if(toggleDash == true)
+        write(STDOUT_FILENO, "\033[1;32m", 8);
+    writeLine("  ▛▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▜\n");
+    writeLine("  ▌                           TOGGLE DASH                           ▐\n");
+    writeLine("  ▙▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▟");
+    write(STDOUT_FILENO, "\033[0m", 5);
+  }
+}
 void hilevel_handler_irq(ctx_t* ctx){
   // read interrupt id
   uint32_t id = GICC0->IAR;
 
   // handle interrupt, then reset
   if( id == GIC_SOURCE_TIMER0 ) {
+    char* string = "";
+    getQEMU(string, 1);
+    // writeLine(string);
+    // writeLine("\n");
+    if(strcmp(string," ") == 0){
+      if(level == 0){
+        if(selected == 0){
+          generateProcess((uint32_t) main_P3, 1);
+        }
+        else if(selected == 1){
+          generateProcess((uint32_t) main_P4, 1);
+        }
+        else if(selected == 2){
+          generateProcess((uint32_t) main_P5, 1);
+        }
+        else if(selected == 3){
+          generateProcess((uint32_t) main_waiter, 1);
+        }
+      }
+      else if(level == 1){
+        for(int i = 1; i <= processes; i++){
+          kill( i, 0 );
+        }
+      }
+      else if(level == 2){
+        toggleDashboard();
+      }
+    }
+    else if(strcmp(string,"w") == 0){
+      if(level == 0)
+      level = 2;
+      else level--;
+    }
+    else if(strcmp(string,"s") == 0){
+      level = (level + 1) % 3;
+    }
+    else if(strcmp(string,"a") == 0 || strcmp(string,"a ") == 0){
+      if(selected == 0)
+      selected = 3;
+      else selected--;
+      string = "";
+    }
+    else if(strcmp(string,"d") == 0 || strcmp(string,"d ") == 0){
+      selected =(selected + 1) % 4;
+      string = "";
+    }
     // PL011_putc( UART0, 'T', true );
     // increase priority of each process ready to be run
+    write(STDOUT_FILENO, "\033c", 4);
     if(toggleDash)
-      dashboard();
+    dashboard();
+    options();
     if(philInit){
       for(int i = 0; i < PHIL_NO; i++){
         clocks[i]--;
@@ -149,27 +301,7 @@ void hilevel_handler_irq(ctx_t* ctx){
 
       return;
     }
-    char* getName(uint32_t main){
-      if(main == (uint32_t)main_console) return "CNSL";
-      else if(main == (uint32_t)main_P3) return "PRG3";
-      else if(main == (uint32_t)main_P4) return "PRG4";
-      else if(main == (uint32_t)main_P5) return "PRG5";
-      else if(main == (uint32_t)main_philo) return "PHIL";
-      else if(main == (uint32_t)main_waiter) return "WITR";
-      return "";
-    }
-    void generateProcess(uint32_t main, int priority){
-      processes++;
-      memset( &pcb[ processes ], 0, sizeof( pcb_t ) );
-      pcb[processes].name = getName(main);
 
-      pcb[ processes ].pid          = processes;
-      pcb[ processes ].status       = STATUS_READY;
-      pcb[ processes ].priority     = priority;
-      pcb[ processes ].ctx.cpsr     = 0x50;
-      pcb[ processes ].ctx.pc       = ( uint32_t )( main );
-      pcb[ processes ].ctx.sp       = ( uint32_t )( &tos_PX + 0x000010000*processes );
-    }
     void hilevel_handler_rst( ctx_t* ctx              ) {
       // initialise console process
       generateProcess((uint32_t) main_console, 1);
@@ -257,47 +389,51 @@ void hilevel_handler_irq(ctx_t* ctx){
           break;
         }
         case 0x11 :{ // DASHBOARD
-          write(STDOUT_FILENO, "\033c", 4);
+
           // write line because write breaks off after 13-16? chars
           //TODO: RENAME TO PID AND STATE, REORDER TO PID NAME STATE
-          write(STDOUT_FILENO, "\033[1;29m", 8);
-          // writeLine("╔═══════╦════════╦═══════════╗\n",91);
-          writeLine("   PID     NAME      STATE    \n",31);
-          write(STDOUT_FILENO, "\033[1;30m", 8);
-          writeLine("  =====   ======    =======   \n",31);
-          write(STDOUT_FILENO, "\033[0m", 5);
-          // writeLine("╠═══════╩════════╩═══════════╣\n",91);
+          writeLine("                    ╔═══════╦════════╦═══════════╗\n");
+          writeLine("                    ║  PID  ║  NAME  ║   STATE   ║\n");
+          writeLine("                    ╠═══════╩════════╩═══════════╣\n");
           for(int i = 0; i <= processes; i++){
-            writeLine("   ",3);
+            writeLine("                    ║  ");
+            write(STDOUT_FILENO, "\033[1;29m", 8);
             printNumber(pcb[i].pid);
-            writeLine("      ",6);
+            write(STDOUT_FILENO, "\033[0m", 5);
+            writeLine("      ");
+            write(STDOUT_FILENO, "\033[1;30m", 8);
             write(STDOUT_FILENO, pcb[i].name, strlen(pcb[i].name));
+            write(STDOUT_FILENO, "\033[0m", 5);
             switch(pcb[i].status){
               case STATUS_READY :{
                 write(STDOUT_FILENO, "\033[1;32m", 8);
-                writeLine("      READY   ",14);
+                writeLine("      READY   ");
                 write(STDOUT_FILENO, "\033[0m", 5);
-                writeLine("\n",1);
+                writeLine("║\n");
                 break;
               }
               case STATUS_TERMINATED :{
                 write(STDOUT_FILENO, "\033[1;31m", 8);
-                writeLine("    COMPLETED ",14);
+                writeLine("    COMPLETED ");
                 write(STDOUT_FILENO, "\033[0m", 5);
-                writeLine("\n",1);
+                writeLine("║\n");
                 break;
               }
               case STATUS_EXECUTING :{
                 write(STDOUT_FILENO, "\033[1;34m", 8);
-                writeLine("    EXECUTING ",14);
+                writeLine("    EXECUTING ");
                 write(STDOUT_FILENO, "\033[0m", 5);
-                writeLine("\n",1);
+                writeLine("║\n");
                 break;
               }
             }
+            if(i<processes)
+            writeLine("                    ╟────────────────────────────╢\n");
           }
+          writeLine("                    ╚════════════════════════════╝\n");
           break;
         }
+
         case 0x12 :{ // TOGGLE DASHBOARD
           toggleDash = !toggleDash;
           write(STDOUT_FILENO, "\033c", 4);

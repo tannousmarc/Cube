@@ -1,7 +1,7 @@
 # Copyright (C) 2017 Daniel Page <csdsp@bristol.ac.uk>
 #
-# Use of this source code is restricted per the CC BY-NC-ND license, a copy of
-# which can be found via http://creativecommons.org (and should be included as
+# Use of this source code is restricted per the CC BY-NC-ND license, a copy of 
+# which can be found via http://creativecommons.org (and should be included as 
 # LICENSE.txt within the associated archive or repository).
 
 # part 1: variables
@@ -12,16 +12,16 @@
  PROJECT_OBJECTS  = $(addsuffix .o, $(basename ${PROJECT_SOURCES}))
  PROJECT_TARGETS  = image.elf image.bin
 
- QEMU_PATH        = "/usr/local"
+ QEMU_PATH        = /usr
  QEMU_GDB         =        127.0.0.1:1234
  QEMU_UART        = stdio
  QEMU_UART       += telnet:127.0.0.1:1235,server
 #QEMU_UART       += telnet:127.0.0.1:1236,server
- QEMU_DISPLAY     = -display none
+ QEMU_DISPLAY     = -nographic -display none 
 #QEMU_DISPLAY     =            -display  sdl
 
- LINARO_PATH      = "/Users/marc/Desktop/conc/CCOS/gcc-arm-none-eabi-5_2-2015q4"
- LINARO_PREFIX    = arm-none-eabi
+ LINARO_PATH      = /usr/local/gcc-linaro-5.1-2015.08-x86_64_arm-eabi
+ LINARO_PREFIX    = arm-eabi
 
 # part 2: build commands
 
@@ -31,7 +31,7 @@
 	@${LINARO_PATH}/bin/${LINARO_PREFIX}-gcc $(addprefix -I , ${PROJECT_PATH} ${LINARO_PATH}/${LINARO_PREFIX}/libc/usr/include) -mcpu=cortex-a8 -mabi=aapcs -ffreestanding -std=gnu99 -g -c -fomit-frame-pointer -O -o ${@} ${<}
 
 %.elf : ${PROJECT_OBJECTS}
-	@${LINARO_PATH}/bin/${LINARO_PREFIX}-ld  -L ${LINARO_PATH}/lib/gcc/arm-none-eabi/5.2.1 -L ${LINARO_PATH}/arm-none-eabi/lib -T ${*}.ld -o ${@} ${^} -lc -lgcc
+	@${LINARO_PATH}/bin/${LINARO_PREFIX}-ld  $(addprefix -L ,                 ${LINARO_PATH}/${LINARO_PREFIX}/libc/usr/lib    ) -T ${*}.ld -o ${@} ${^} -lc -lgcc
 %.bin : %.elf
 	@${LINARO_PATH}/bin/${LINARO_PREFIX}-objcopy -O binary ${<} ${@}
 

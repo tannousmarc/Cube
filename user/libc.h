@@ -116,7 +116,7 @@ extern void  runPhilo();
 
 extern int getPhiloId();
 extern int getPhiloNo();
-extern void writeLine(char* line,int len);
+extern void writeLine(char* line);
 extern void resetClock(int x);
 extern void toggleDashboard();
 extern int getDash();

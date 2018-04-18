@@ -8,15 +8,6 @@ extern void main_philo();
 
 
 
-void waitFork(int id){
-  id += PHIL_NO;
-  waitRead(id, 0);
-  waitWrite(id, 0, -1);
-}
-void downFork(int id){
-  id += PHIL_NO;
-  waitWrite(id, 0, 0);
-}
 
 void main_waiter() {
   // write(STDOUT_FILENO,"WAITERINIT\n",11);

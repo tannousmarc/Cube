@@ -1,7 +1,7 @@
 /* Copyright (C) 2017 Daniel Page <csdsp@bristol.ac.uk>
  *
- * Use of this source code is restricted per the CC BY-NC-ND license, a copy of 
- * which can be found via http://creativecommons.org (and should be included as 
+ * Use of this source code is restricted per the CC BY-NC-ND license, a copy of
+ * which can be found via http://creativecommons.org (and should be included as
  * LICENSE.txt within the associated archive or repository).
  */
 
@@ -49,15 +49,20 @@ bool    PL011_can_getc( PL011_t* d ) {
 
 void    PL011_putc( PL011_t* d, uint8_t x, bool f ) {
   // wait while blocking enabled and transmit FIFO is full
-  while( f && ( d->FR & 0x20 ) );
+  if(d == UART1)
+    while( f && ( d->FR & 0x20 ) );
   //            transmit x
   d->DR = x;
 }
 
 uint8_t PL011_getc( PL011_t* d,            bool f ) {
   // wait while blocking enabled and receive  FIFO is empty
-  while( f && ( d->FR & 0x10 ) );
+  if(d == UART1)
+    while( f && ( d->FR & 0x10 ) );
   //            recieve  r
+  if (!PL011_can_getc(d)){
+    return 0;
+  }
   return d->DR;
 }
 

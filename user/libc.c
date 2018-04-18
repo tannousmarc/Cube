@@ -6,7 +6,8 @@
  */
 
 #include "libc.h"
-void writeLine(char* line, int size){
+void writeLine(char* line){
+  int size = strlen(line);
   for( int i = 0; i < size; i++ )
      PL011_putc( UART0, *line++, true );
 }

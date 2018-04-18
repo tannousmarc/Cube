@@ -2,6 +2,15 @@
 #include "philo.h"
 #include "waiter.h"
 
+void waitFork(int id){
+  id += PHIL_NO;
+  waitRead(id, 0);
+  waitWrite(id, 0, -1);
+}
+void downFork(int id){
+  id += PHIL_NO;
+  waitWrite(id, 0, 0);
+}
 
 int min(int a, int b){
   return (a < b ? a : b);
@@ -12,32 +21,32 @@ int max(int a, int b){
 void think(int id){
   int write = getDash();
   if(!write){
-    writeLine("P",1);
+    writeLine("P");
     printNumber(id);
-    writeLine(" has started thinking.\n",23);
+    writeLine(" has started thinking.\n");
   }
   resetClock(id);
   waitRead(id,0);
   if(!write){
-    writeLine("P",1);
+    writeLine("P");
     printNumber(id);
-    writeLine(" is done thinking.\n",19);
+    writeLine(" is done thinking.\n");
   }
 }
 
 void eat(int id){
   int write = getDash();
   if(!write){
-    writeLine("P",1);
+    writeLine("P");
     printNumber(id);
-    writeLine(" has started eating.\n",21);
+    writeLine(" has started eating.\n");
   }
   resetClock(id);
   waitRead(id,0);
   if(!write){
-    writeLine("P",1);
+    writeLine("P");
     printNumber(id);
-    writeLine(" is done eating.\n",17);
+    writeLine(" is done eating.\n");
   }
 }
 
