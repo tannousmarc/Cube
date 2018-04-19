@@ -21,43 +21,39 @@ int max(int a, int b){
 void think(int id){
   int write = getDash();
   if(!write){
-    writeLine("P");
+    writeLine("\n  P");
     printNumber(id);
-    writeLine(" has started thinking.\n");
+    writeLine(" has started thinking.");
   }
   resetClock(id);
   waitRead(id,0);
   if(!write){
-    writeLine("P");
+    writeLine("\n  P");
     printNumber(id);
-    writeLine(" is done thinking.\n");
+    writeLine(" is done thinking.");
   }
 }
 
 void eat(int id){
   int write = getDash();
   if(!write){
-    writeLine("P");
+    writeLine("\n  P");
     printNumber(id);
-    writeLine(" has started eating.\n");
+    writeLine(" has started eating.");
   }
   resetClock(id);
   waitRead(id,0);
   if(!write){
-    writeLine("P");
+    writeLine("\n  P");
     printNumber(id);
-    writeLine(" is done eating.\n");
+    writeLine(" is done eating.");
   }
 }
 
 
 void main_philo() {
   int id = getPhiloId();
-  // printNumber(id);
-  // write(STDOUT_FILENO, "PHILOINIT\n", 10);
-  // waitWrite(id, 0, id);
-  // waitWrite(id, 0, 17);
-  // waitWrite(id, 0, 18);
+
   while(true){
     think(id);
     waitFork(min(id, (id+1) % PHIL_NO));

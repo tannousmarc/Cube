@@ -69,7 +69,7 @@ typedef struct{
   int read, write;
 } pipe_t;
 
-#define MAX_PRIORITY (16)
+#define MAX_PRIORITY (25)
 #define PHIL_NO (16)
 
 extern void initPipes();

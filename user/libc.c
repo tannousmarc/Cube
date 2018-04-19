@@ -46,9 +46,9 @@ void printDigit(int x){
 }
 void printNumber(int x){
   if(x<0){
-    write(STDOUT_FILENO, "-", 1);
+    write(STDOUT_FILENO, "--", 2);
   }
-  if(x>9){
+  else if(x>9){
     printDigit(x/10);
     printDigit(x - ((x/10)*10));
   }
