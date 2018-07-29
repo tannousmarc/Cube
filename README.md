@@ -1,4 +1,4 @@
 # cube
 
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/6099321/43369210-fdfa3994-9361-11e8-98e8-c0b8ae1d72b1.gif" width="500"/></p>
+  <img src="https://user-images.githubusercontent.com/6099321/43369411-c313e13c-9365-11e8-9499-085bcdbe24d6.gif" width="500"/></p>
