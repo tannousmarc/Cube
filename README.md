@@ -1,5 +1,5 @@
 # cube
-Minimal kernel targeted for the ARM Cortex-A8 platform emulated by QEMU. 
+Year 2 assignment for Concurrent Computing: simple kernel targeted for the ARM Cortex-A8 platform emulated by QEMU. 
 
 Features include an aging scheduler, inter process communication via pipes, and a GUI that handles input from PS/2 controllers.
 
